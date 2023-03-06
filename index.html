@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Raspberry Pi GPIO Control</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        // Configurar los pines GPIO como salida
+        $.get("/gpio/setup", { pins: [9, 10, 11], mode: "out" });
+
+        // Encender y apagar GPIO11 cada 2 segundos
+        setInterval(function() {
+          $.get("/gpio/write", { pin: 11, value: 1 });
+          setTimeout(function() {
+            $.get("/gpio/write", { pin: 11, value: 0 });
+          }, 300);
+        }, 2000);
+
+        // Función para enviar datos binarios por los pines GPIO
+        function sendBinaryData(data) {
+          for (var i = 0; i < data.length; i++) {
+            var value = data.charAt(i);
+            $.get("/gpio/write", { pin: 9, value: value });
+            $.get("/gpio/write", { pin: 10, value: value });
+            setTimeout(function() {
+              $.get("/gpio/write", { pin: 9, value: 0 });
+              $.get("/gpio/write", { pin: 10, value: 0 });
+            }, 300);
+          }
+        }
+
+        // Función para procesar el texto ingresado y enviarlo en binario
+        $("#submit").click(function() {
+          var text = $("#text-input").val();
+          var binary = "";
+          for (var i = 0; i < text.length; i++) {
+            var charCode = text.charCodeAt(i);
+            var binaryCode = charCode.toString(2);
+            binary += binaryCode.padStart(8, "0");
+          }
+          sendBinaryData(binary);
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <h1>Hola Mundo</h1>
+    <label for="text-input">Ingrese un texto (máximo 100 caracteres):</label>
+    <input type="text" id="text-input" maxlength="100">
+    <button id="submit">Enviar</button>
+  </body>
+</html>
